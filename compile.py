@@ -1,15 +1,15 @@
 import os
 from typing import Iterable
 
-def compile(project:str,exclude:Iterable):
+def compile(project:str,exclude_files:Iterable, exclude_dirs:Iterable):
 
     excludes = ['__init__','compile','compiler']
-    excludes.extend(exclude)
+    excludes.extend(exclude_files)
     files = []
 
     for path, j, file_list in os.walk(os.getcwd()):
         for file_name in file_list:
-            if file_name.endswith(".py") and file_name[:-3] not in excludes:
+            if file_name.endswith(".py") and file_name[:-3] not in excludes and not path.endswith(tuple(exclude_dirs)):
                 json = {
                     "name": file_name[:-3],
                     "full_name": file_name,
@@ -43,7 +43,8 @@ def compile(project:str,exclude:Iterable):
             compiler.close()
         
         os.system("python3 compiler.py build_ext --inplace")
-        os.remove(file_path + '/' + file_name + '.c')
+        if os.path.exists(file_path + '/' + file_name + '.c'):
+            os.remove(file_path + '/' + file_name + '.c')
         for path, j, file_list in os.walk(os.getcwd()):
             for f in file_list:
                 if f.endswith('.so') and f != file_name + '.so' and f.startswith(file_name):
